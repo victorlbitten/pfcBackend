@@ -1,28 +1,55 @@
-exports.map = (apiReturn, mappingProperties) => {
-  return mapApiToApp(mappingProperties, apiReturn);
-  
-  function mapApiToApp(mappingProperties, apiReturn) {
-    const mappingKeys = Object.keys(mappingProperties);
-    const mappingValues = Object.values(mappingProperties);
-    return mappingKeys.reduce((returnVariable, key, index) => {
-      const mapRoute = mappingValues[index];
-      if (!Array.isArray(mapRoute)) {
-        if (mapRoute.dataRoute) {
-          const routeToArray = mapRoute.dataRoute;
-          const listOfItemsToMap = (routeToArray[0] === "")
-            ? apiReturn
-            : routeToArray.reduce((list, route) => list[route], apiReturn);
-          returnVariable[key] = listOfItemsToMap.map((item) => mapApiToApp(mapRoute.mappingRules, item));
-        } else {
-          returnVariable[key] = mapApiToApp(mapRoute, apiReturn);
-        }
-      }
-      else {
-        returnVariable[key] = mapRoute.reduce((returnObject, point) => {
-          return returnObject[point];
-        }, apiReturn)
-      }
-      return returnVariable;
-    }, {})
+
+exports.map = (appDescription, dataFromApi) => {
+  const assignableTypes = ['property', 'array'];
+  const initialDescriptionKeys = Object.keys(appDescription);
+
+  const mappingIteration = (mappedObject, descriptionKey, descriptionObject, rawDataOverride = null) => {
+    const rawData = rawDataOverride || dataFromApi;
+    const isAssignable = assignableTypes.includes(descriptionObject.type);
+    
+    if (isAssignable) {
+      mappedObject[descriptionKey] = getNestedProperty(rawData, descriptionObject.mapping);
+      return mappedObject[descriptionKey];
+    }
+
+    if (descriptionObject.type === 'object') {
+      const newDescriptionKeys = Object.keys(descriptionObject.description);
+      newDescriptionKeys.forEach((newKey) => {
+        mappedObject[newKey] = mappingIteration({}, newKey, descriptionObject.description[newKey]);
+      })
+    }
+
+    if (descriptionObject.type === 'object_array') {
+      mappedObject = [];
+      const rawDataObjects = getNestedProperty(rawData, descriptionObject.mapping);
+      rawDataObjects.forEach((rawDataObject) => {
+        const descriptionEntries = Object.entries(descriptionObject.description);
+        const objectToInsert = {};
+        descriptionEntries.forEach(([entryName, entryDescription]) => {
+          if (entryName !== 'add') {
+            const sliceUpToIndex = entryDescription.mapping.indexOf(descriptionObject.mapping[descriptionObject.mapping.length - 1]) + 1;
+            entryDescription.mapping = entryDescription.mapping.slice(sliceUpToIndex);
+            objectToInsert[entryName] = mappingIteration({}, entryName, entryDescription, rawDataObject);
+            console.log(objectToInsert);
+          }
+        })
+        mappedObject.push(objectToInsert);
+      })
+    }
+
+    return mappedObject;
   }
+
+
+  return initialDescriptionKeys.reduce((mappedObject, currentKey) => {
+    mappedObject[currentKey] = mappingIteration({}, currentKey, appDescription[currentKey]);
+    return mappedObject;
+  }, {})
+}
+
+function getNestedProperty (descriptionObject, mapToProperty) {
+  return mapToProperty.reduce((reducedObject, currentStep) => {
+    return (reducedObject[currentStep]);
+  },
+  descriptionObject);
 }
