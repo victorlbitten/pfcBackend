@@ -4,7 +4,8 @@ exports.createAppDescriptionByApiId = async (appDescription, apiId, request) => 
 	const queryString = "INSERT INTO descriptions SET ?";
 	const descriptionToInsert = {
 		api_id: apiId,
-		description: JSON.stringify(appDescription)
+		description: JSON.stringify(appDescription.description),
+		is_json: appDescription.is_json
 	};
 	
 	try {
@@ -21,7 +22,8 @@ exports.updateApplicationDescription = async (descriptionData, apiId, request) =
 	const queryString = "UPDATE descriptions SET ? where api_id = ?";
 	const descriptionToInsert = {
 		api_id: apiId,
-		description: JSON.stringify(descriptionData)
+		description: JSON.stringify(descriptionData.description),
+		is_json: descriptionData.is_json
 	};
 	const parametersList = [descriptionToInsert, apiId];
 	
@@ -42,17 +44,6 @@ exports.deleteDescriptionByApiId = async (requestHandler, apiId) => {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
 exports.getApiDescriptionById = (apiId, requestHandler) => {
 	const queryString = "SELECT description FROM descriptions WHERE api_id = ?";
 	return new Promise((resolve, reject) => {
@@ -71,31 +62,13 @@ exports.getApiDescriptionById = (apiId, requestHandler) => {
 	})
 }
 
-function _executeQueryAndReturn(
-	requestHandler,
-	responseHandler,
-	queryString,
-	parametersList = [],
-	shouldParse = false
-) {
-	requestHandler.getConnection((error, connection) => {
-		connection.query(
-			queryString,
-			parametersList,
-			(queryError, result) => {
-				if (queryError) {
-					console.log(queryError);
-					return responseHandler.status(400).json(queryError);
-				}
-				if (shouldParse) {
-					const parsedDescriptions = result.map((currentDescription) => ({
-						id: currentDescription.id,
-						api_id: currentDescription.api_id,
-						mapping: JSON.parse(currentDescription.mapping)
-					}));
-					return responseHandler.json(parsedDescriptions);
-				}
-				return responseHandler.send(result);
-			})
-	})
+exports.appExpectsJson = async (request, apiId) => {
+  const queryString = "SELECT is_json FROM descriptions WHERE api_id = ?";
+
+  try {
+    const apiReturnsInJson = await sqlFactory.runQuery(request, queryString, apiId);
+    return Boolean(apiReturnsInJson[0].is_json);
+  } catch (error) {
+    console.log("Couldn't load API return format");
+  }
 }

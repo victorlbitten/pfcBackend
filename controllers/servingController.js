@@ -5,7 +5,7 @@ const dataToReturn = {
       name: 'Victor',
       age: 27
   }
-}
+};
 
 exports.getXml = (request, response) => {
   response.send(parser.toXml(dataToReturn));
