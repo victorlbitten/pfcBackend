@@ -30,7 +30,6 @@ exports.map = (appDescription, dataFromApi) => {
             const sliceUpToIndex = entryDescription.mapping.indexOf(descriptionObject.mapping[descriptionObject.mapping.length - 1]) + 1;
             entryDescription.mapping = entryDescription.mapping.slice(sliceUpToIndex);
             objectToInsert[entryName] = mappingIteration({}, entryName, entryDescription, rawDataObject);
-            console.log(objectToInsert);
           }
         })
         mappedObject.push(objectToInsert);

@@ -16,40 +16,25 @@ exports.getData = async (request, response) => {
 }
 
 async function makeRequestToApi (apiId, requestHandler) {
-	const queryString = "SELECT url FROM apis WHERE id = ?";
-	const url = await sqlFactory.runQuery(requestHandler, queryString, apiId);
+	const queryString = "SELECT url, method FROM apis WHERE id = ?";
+	const { url: apiUrl, method: apiMethod } = (await sqlFactory.runQuery(requestHandler, queryString, apiId))[0];
 
-	//TODO: make request
-
-	const mockedApiData = {
-		data: {
-			user: {
-				name: 'Victor',
-				grades: [1,2,3,4],
-				sisters: [
-					{
-						name:'isadora', age:29, test: {hahatest: 'isa'}, pets: ['gato', 'catioro']
-					},
-					{
-						name:'ligia',age:25, test: {hahatest: 'liginha'}, pets: ['gato', 'catioro', 'passarito']
-					}
-				]
-			}
-		}
+	const requestConfig = {
+		url: apiUrl,
+		method: apiMethod
 	};
 
-	return mockedApiData;
+	try {
+		const dataFromApi = await axios(requestConfig);
+		return dataFromApi;
+	} catch (error) {
+		console.log(error);
+		return error;
+	}
 }
 
 async function getDescription (apiId, requestHandler) {
 	const queryString = "SELECT description FROM descriptions WHERE api_id = ?";
 	const descriptionData = await sqlFactory.runQuery(requestHandler, queryString, apiId);
-	return JSON.parse(descriptionData[0].description);
-}
-
-async function getApiDescription (apiId, requestHandler) {
-	const queryString = "SELECT description FROM apisDescription WHERE api_id = ?";
-	const descriptionData = await sqlFactory.runQuery(requestHandler, queryString, apiId);
-
 	return JSON.parse(descriptionData[0].description);
 }
