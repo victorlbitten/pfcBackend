@@ -81,7 +81,7 @@ exports.getAllApis = async (request, response) => {
 
   exports.getDescriptionByApiId = async (request, response) => {
     const apiId = request.params.id;
-    const queryString = "SELECT description from descriptions WHERE api_id = ?";
+    const queryString = "SELECT * from descriptions WHERE api_id = ?";
     
     try {
       const result = await sqlFactory.runQuery(request, queryString, apiId);
