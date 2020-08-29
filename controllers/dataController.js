@@ -3,6 +3,7 @@ const parser = require('xml2json');
 const apisController = require('./apisController');
 const descriptionsController = require('./descriptionsController');
 const apiDescriptionsController = require('./apiDescriptionsController');
+const opcController = require('./opcController');
 const mappingFunction = require('../factory/mappingFunction');
 const sqlFactory = require('../factory/mysql.factory');
 

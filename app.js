@@ -22,6 +22,7 @@ var indexRouter = require('./routes/index');
 var apisRouter = require('./routes/apis');
 var descriptionsRouter = require('./routes/descriptions');
 var dataRouter = require('./routes/data');
+var opcRouter = require('./routes/opcua');
 var servingRouter = require('./routes/serving');
 
 var corsOptions = {
@@ -54,6 +55,7 @@ app.use('/', indexRouter);
 app.use('/apis', apisRouter);
 app.use('/descriptions', descriptionsRouter);
 app.use('/data', dataRouter);
+app.use('/opc', opcRouter);
 app.use('/serving', servingRouter);
 
 // catch 404 and forward to error handler
